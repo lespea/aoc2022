@@ -21,6 +21,3 @@ lto = true
 strip = true
 
 [workspace.dependencies]
-atoi = "2"
-bstr = "1"
-itertools = "0.10"
