@@ -24,3 +24,4 @@ lto = true
 strip = true
 
 [workspace.dependencies]
+atoi = "2.0.0"
