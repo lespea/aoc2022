@@ -4,7 +4,7 @@ use std::collections::VecDeque;
 use std::io::{Cursor, Read, Seek, SeekFrom};
 use std::str::Lines;
 
-const PART_1: bool = true;
+const PART_1: bool = false;
 
 static PART_1_DATA: &str = include_str!("input");
 
@@ -18,11 +18,15 @@ fn main() {
 
 fn part1() {
     let mut boxes = Boxes::default();
-    boxes.parse_and_run(PART_1_DATA);
+    boxes.parse_and_run(PART_1_DATA, false);
     println!("{}", boxes.answer());
 }
 
-fn part2() {}
+fn part2() {
+    let mut boxes = Boxes::default();
+    boxes.parse_and_run(PART_1_DATA, true);
+    println!("{}", boxes.answer());
+}
 
 #[derive(Eq, PartialEq, Clone, Debug, Default)]
 pub struct Boxes([VecDeque<char>; 9]);
@@ -62,29 +66,41 @@ impl Boxes {
         }
     }
 
-    pub fn run(&mut self, instr: Instr) {
-        for _ in 0..instr.count {
-            let item = self.0[instr.src].pop_back().unwrap();
-            self.0[instr.dst].push_back(item);
-        }
-    }
-
-    pub fn run_all(&mut self, lines: &mut Lines) {
-        for line in lines {
-            if let Ok(instr) = line.try_into() {
-                self.run(instr)
+    pub fn run(&mut self, instr: Instr, at_once: bool) {
+        if at_once {
+            let src = &mut self.0[instr.src];
+            let idx = src.len() - instr.count;
+            let tail = src.split_off(idx);
+            self.0[instr.dst].extend(tail);
+        } else {
+            for _ in 0..instr.count {
+                let item = self.0[instr.src].pop_back().unwrap();
+                self.0[instr.dst].push_back(item);
             }
         }
     }
 
-    pub fn parse_and_run(&mut self, problem: &str) {
+    pub fn run_all(&mut self, lines: &mut Lines, at_once: bool) {
+        for line in lines {
+            if let Ok(instr) = line.try_into() {
+                self.run(instr, at_once)
+            }
+        }
+    }
+
+    pub fn parse_and_run(&mut self, problem: &str, at_once: bool) {
         let mut lines = problem.lines();
         self.add_lines(&mut lines);
-        self.run_all(&mut lines);
+        self.run_all(&mut lines, at_once);
     }
 
     pub fn answer(&self) -> String {
-        self.0.iter().map(|b| b.back().unwrap()).collect()
+        self.0
+            .iter()
+            .map(|b| b.back().unwrap_or(&' '))
+            .collect::<String>()
+            .trim()
+            .to_string()
     }
 }
 
@@ -193,5 +209,21 @@ move 1 from 1 to 2
         ]) {
             assert_eq!(Some(want), Instr::parse(line));
         }
+    }
+
+    #[test]
+    fn test_one_at_a_time() {
+        assert_eq!("CMZ", get_ans(false))
+    }
+
+    #[test]
+    fn test_all_at_once() {
+        assert_eq!("MCD", get_ans(true))
+    }
+
+    fn get_ans(at_once: bool) -> String {
+        let mut boxes = Boxes::default();
+        boxes.parse_and_run(&make_problem(), at_once);
+        boxes.answer()
     }
 }
