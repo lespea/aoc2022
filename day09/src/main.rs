@@ -14,9 +14,9 @@ fn main() {
 
 fn part1() {
     let mut pos = HashSet::with_capacity(1024);
+    pos.insert(Coord::default());
 
     let mut knot = Knot::default();
-    pos.insert(knot.tail);
 
     for line in PART_1_DATA.lines() {
         knot.do_moves(line, &mut pos);
@@ -49,38 +49,44 @@ impl Coord {
         let x_diff = (self.x - head.x).abs();
         let y_diff = (self.y - head.y).abs();
 
-        if x_diff + y_diff > 1 {
-            match (x_diff, y_diff) {
-                (1, 1) => (),
+        if x_diff > 1 {
+            if self.x < head.x {
+                self.x += 1;
+            } else {
+                self.x -= 1;
+            }
 
-                (2, _) => {
-                    self.y = head.y;
-                    if self.x < head.x {
-                        self.x += 1;
-                    } else {
-                        self.x -= 1;
-                    }
+            if y_diff > 0 {
+                if self.y < head.y {
+                    self.y += 1;
+                } else {
+                    self.y -= 1;
                 }
+            }
+        } else if y_diff > 1 {
+            if self.y < head.y {
+                self.y += 1;
+            } else {
+                self.y -= 1;
+            }
 
-                (_, 2) => {
-                    self.x = head.x;
-                    if self.y < head.y {
-                        self.y += 1;
-                    } else {
-                        self.y -= 1;
-                    }
+            if x_diff > 0 {
+                if self.x < head.x {
+                    self.x += 1;
+                } else {
+                    self.x -= 1;
                 }
-
-                _ => panic!("Invalid position: {self:?}/{head:?}"),
             }
         }
     }
 }
 
+const TAIL_N: usize = 9;
+
 #[derive(Eq, PartialEq, Copy, Clone, Hash, Debug, Default)]
 struct Knot {
     head: Coord,
-    tail: Coord,
+    tails: [Coord; TAIL_N],
 }
 
 #[derive(Eq, PartialEq, Copy, Clone, Hash, Debug)]
@@ -125,8 +131,11 @@ impl Knot {
 
         for _ in 0..(m.count) {
             self.head.move_head(m.dir);
-            self.tail.adjust_tail(self.head);
-            tail_pos.insert(self.tail);
+            self.tails[0].adjust_tail(self.head);
+            for i in 1..TAIL_N {
+                self.tails[i].adjust_tail(self.tails[i - 1]);
+            }
+            tail_pos.insert(self.tails[TAIL_N - 1]);
         }
     }
 }
