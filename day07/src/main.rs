@@ -1,7 +1,7 @@
 use id_tree::{InsertBehavior, Node, NodeId, Tree};
 use std::fmt::{Display, Formatter};
 
-const PART_1: bool = true;
+const PART_1: bool = false;
 
 static PART_1_DATA: &str = include_str!("input");
 
@@ -24,13 +24,29 @@ fn part1(fs: FS) {
 }
 
 fn part2(fs: FS) {
-    println!("{}", fs.sum_dirs_under(100_000));
+    println!("{}", fs.find_del_dir(70_000_000, 30_000_000));
 }
 
 #[derive(Eq, PartialEq, Ord, PartialOrd, Clone, Debug)]
 enum Entry {
     Dir(FsEntry),
     File(FsEntry),
+}
+
+impl Entry {
+    fn size(&self) -> i64 {
+        match self {
+            Entry::Dir(d) => d.size,
+            Entry::File(d) => d.size,
+        }
+    }
+
+    fn dir_size(&self) -> Option<i64> {
+        match self {
+            Entry::Dir(d) => Some(d.size),
+            _ => None,
+        }
+    }
 }
 
 impl Display for Entry {
@@ -157,15 +173,12 @@ impl FS {
 
         let mut size = 0;
         for child in tree.children(&entry).unwrap() {
-            match child.data() {
-                Entry::Dir(e) => size += e.size,
-                Entry::File(e) => size += e.size,
-            }
+            size += child.data().size();
         }
 
         match tree.get_mut(&entry).unwrap().data_mut() {
             Entry::Dir(e) => e.size = size,
-            Entry::File(e) => e.size = size,
+            _ => panic!("Setting size of file entry?"),
         }
     }
 
@@ -184,6 +197,32 @@ impl FS {
         }
 
         sum
+    }
+
+    fn find_del_dir(&self, total_space: i64, needed_space: i64) -> i64 {
+        let root_id = self.tree.root_node_id().unwrap();
+        let root_size = self.tree.get(root_id).unwrap().data().dir_size().unwrap();
+
+        let free_space = total_space - root_size;
+        if free_space > needed_space {
+            return 0;
+        }
+
+        let to_delete = needed_space - free_space;
+        if root_size < to_delete {
+            panic!("Insufficient space");
+        }
+
+        let mut del_size = root_size;
+        for node in self.tree.traverse_level_order(root_id).unwrap() {
+            if let Some(size) = node.data().dir_size() {
+                if size >= to_delete {
+                    del_size = del_size.min(size);
+                }
+            }
+        }
+
+        del_size
     }
 
     fn print(&self) {
@@ -232,9 +271,15 @@ $ ls
     }
 
     #[test]
-    fn examples() {
+    fn examples_1() {
         let fs = FS::new(test_data());
         fs.print();
         assert_eq!(95_437, fs.sum_dirs_under(100_000))
+    }
+
+    #[test]
+    fn examples_2() {
+        let fs = FS::new(test_data());
+        assert_eq!(24_933_642, fs.find_del_dir(70_000_000, 30_000_000))
     }
 }
