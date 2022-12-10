@@ -142,8 +142,6 @@ impl Knot {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn example() {}
 }
