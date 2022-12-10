@@ -1,4 +1,4 @@
-const PART_1: bool = true;
+const PART_1: bool = false;
 
 static PART_1_DATA: &str = include_str!("input");
 
@@ -16,7 +16,14 @@ fn part1() {
     println!("{}", comp.signal_total());
 }
 
-fn part2() {}
+fn part2() {
+    let mut comp = Comp::default();
+    comp.run_all(PART_1_DATA);
+    println!("{}", comp.output_sprites);
+}
+
+const COLS: usize = 40;
+const ROWS: usize = 6;
 
 #[derive(Eq, PartialEq, Clone, Ord, PartialOrd, Debug)]
 pub struct Comp {
@@ -25,6 +32,7 @@ pub struct Comp {
     pub signal: i64,
     pub sig_cycle: i64,
     pub found_signals: Vec<i64>,
+    pub output_sprites: String,
 }
 
 impl Default for Comp {
@@ -35,6 +43,7 @@ impl Default for Comp {
             signal: 0,
             sig_cycle: 20,
             found_signals: Vec::with_capacity(16),
+            output_sprites: String::with_capacity(ROWS * COLS + COLS),
         }
     }
 }
@@ -53,24 +62,44 @@ impl Comp {
     pub fn run(&mut self, inst: Inst) {
         let adj = match inst {
             Inst::Noop => {
-                self.cycle += 1;
+                self.cycle();
                 0
             }
 
             Inst::Add(n) => {
-                self.cycle += 2;
+                self.cycle();
+                self.cycle();
                 n
             }
         };
 
         if self.cycle >= self.sig_cycle {
             let val = self.sig_cycle * self.x;
-            println!("Found signal {}*{} = {}", self.sig_cycle, self.x, val);
+            // println!("Found signal {}*{} = {}", self.sig_cycle, self.x, val);
             self.found_signals.push(val);
             self.sig_cycle += 40;
         }
 
         self.x += adj;
+    }
+
+    fn cycle(&mut self) {
+        const ON: char = '#';
+        const OFF: char = '.';
+
+        let pos = self.cycle % 40;
+
+        if pos >= self.x - 1 && pos <= self.x + 1 {
+            self.output_sprites.push(ON);
+        } else {
+            self.output_sprites.push(OFF);
+        }
+
+        self.cycle += 1;
+
+        if self.cycle % 40 == 0 {
+            self.output_sprites.push('\n');
+        }
     }
 }
 
@@ -102,6 +131,8 @@ mod tests {
         comp.run_all(test_data());
         assert_eq!(vec![420, 1140, 1800, 2940, 2880, 3960], comp.found_signals);
         assert_eq!(13140, comp.signal_total());
+
+        assert_eq!(example_output().to_string(), comp.output_sprites)
     }
 
     fn test_data() -> &'static str {
@@ -251,5 +282,14 @@ addx -11
 noop
 noop
 noop"
+    }
+
+    fn example_output() -> &'static str {
+        "##..##..##..##..##..##..##..##..##..##..
+###...###...###...###...###...###...###.
+####....####....####....####....####....
+#####.....#####.....#####.....#####.....
+######......######......######......####
+#######.......#######.......#######.....\n"
     }
 }
