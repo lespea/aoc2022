@@ -97,7 +97,7 @@ impl Comp {
 
         self.cycle += 1;
 
-        if self.cycle % 40 == 0 {
+        if pos == (COLS as i64) - 1 {
             self.output_sprites.push('\n');
         }
     }
