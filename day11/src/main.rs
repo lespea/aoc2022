@@ -23,12 +23,12 @@ fn main() -> Result<()> {
 }
 
 fn part1(mut monkies: Monkies) -> Result<()> {
-    println!("{}", monkies.run(20, 2));
+    println!("{}", monkies.run(20, 2, false));
     Ok(())
 }
 
 fn part2(mut monkies: Monkies) -> Result<()> {
-    println!("{}", monkies.run(20, 2));
+    println!("{}", monkies.run(10_000, 2, true));
     Ok(())
 }
 
@@ -38,11 +38,19 @@ mod tests {
     use crate::parser::parse_monkies;
 
     #[test]
-    fn example() {
+    fn example1() {
         let mut monkies = example_monkies();
-        println!("{monkies}");
         assert_eq!(4, monkies.0.len());
-        assert_eq!(10_605, monkies.run(20, 2))
+
+        assert_eq!(10_605, monkies.run(20, 2, false));
+    }
+
+    #[test]
+    fn example2() {
+        let mut monkies = example_monkies();
+        assert_eq!(4, monkies.0.len());
+
+        assert_eq!(2_713_310_158, monkies.run(10_000, 2, true));
     }
 
     fn example_monkies() -> Monkies {

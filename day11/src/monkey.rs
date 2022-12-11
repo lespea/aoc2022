@@ -10,14 +10,20 @@ const DEBUG_MATH: bool = DEBUG && false;
 pub struct Monkies(pub Vec<Monkey>);
 
 impl Monkies {
-    pub fn run(&mut self, n: usize, top: usize) -> usize {
+    fn lcm(&self) -> ItemNum {
+        self.0.iter().map(|m| m.test_mod).fold(1, num::integer::lcm)
+    }
+
+    pub fn run(&mut self, n: usize, top: usize, worry: bool) -> usize {
+        let lcm = self.lcm();
         let mut moves: Vec<ItemMove> = Vec::with_capacity(128);
+
         for _ in 0..n {
             if DEBUG {
                 println!("{self}\n");
             }
             for idx in 0..self.0.len() {
-                self.0[idx].take_turn(&mut moves);
+                self.0[idx].take_turn(&mut moves, lcm, worry);
                 for ItemMove { item, target } in moves.drain(0..) {
                     self.0[target].items.push(item);
                 }
@@ -72,7 +78,7 @@ pub struct Monkey {
 }
 
 impl Monkey {
-    pub fn take_turn(&mut self, targets: &mut Vec<ItemMove>) {
+    pub fn take_turn(&mut self, targets: &mut Vec<ItemMove>, lcm: ItemNum, worry: bool) {
         if DEBUG {
             println!("{self}");
         }
@@ -80,15 +86,16 @@ impl Monkey {
         self.num_inspected += self.items.len();
 
         targets.extend(self.items.drain(..).map(|i| {
-            let i = self.op.adjust(i);
-            let im = if i.0 % self.test_mod == 0 {
+            let i = self.op.adjust(i, worry);
+
+            let im = if i % self.test_mod == 0 {
                 ItemMove {
-                    item: i,
+                    item: Item(i % lcm),
                     target: self.target_true,
                 }
             } else {
                 ItemMove {
-                    item: i,
+                    item: Item(i % lcm),
                     target: self.target_false,
                 }
             };
@@ -172,7 +179,7 @@ impl TryFrom<(char, &str)> for Op {
 }
 
 impl Op {
-    pub fn adjust(self, old: Item) -> Item {
+    pub fn adjust(self, old: Item, should_worry: bool) -> ItemNum {
         use Op::*;
 
         let worry = old.0;
@@ -183,13 +190,17 @@ impl Op {
             Double => worry * worry,
         };
 
-        let ans = (worry as f64 / 3.0).floor() as ItemNum;
+        let ans = if should_worry {
+            worry
+        } else {
+            (worry as f64 / 3.0).floor() as ItemNum
+        };
 
         if DEBUG_MATH {
             println!("{} -> {worry} -> {ans}", old.0)
         }
 
-        Item(ans)
+        ans
     }
 }
 
@@ -240,6 +251,6 @@ mod tests {
             },
         ]);
 
-        assert_eq!(10_605, monkies.run(20, 2))
+        assert_eq!(10_605, monkies.run(20, 2, false))
     }
 }

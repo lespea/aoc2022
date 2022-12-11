@@ -11,3 +11,4 @@ license.workspace = true
 [dependencies]
 color-eyre.workspace = true
 nom.workspace = true
+num.workspace = true
