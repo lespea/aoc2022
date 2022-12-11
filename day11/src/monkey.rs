@@ -7,9 +7,9 @@ const DEBUG: bool = false;
 const DEBUG_MATH: bool = DEBUG && false;
 
 #[derive(Eq, PartialEq, Clone, Ord, PartialOrd, Debug, Default)]
-pub struct Monkies(pub Vec<Monkey>);
+pub struct Monkeys(pub Vec<Monkey>);
 
-impl Monkies {
+impl Monkeys {
     fn lcm(&self) -> ItemNum {
         self.0.iter().map(|m| m.test_mod).fold(1, num::integer::lcm)
     }
@@ -45,7 +45,7 @@ impl Monkies {
     }
 }
 
-impl Display for Monkies {
+impl Display for Monkeys {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         for (i, monkey) in self.0.iter().enumerate() {
             if i != 0 {
@@ -212,7 +212,7 @@ mod tests {
     fn example() {
         use Op::*;
 
-        let mut monkies = Monkies(vec![
+        let mut monkeys = Monkeys(vec![
             Monkey {
                 num: 0,
                 items: vec![Item(79), Item(98)],
@@ -251,6 +251,6 @@ mod tests {
             },
         ]);
 
-        assert_eq!(10_605, monkies.run(20, 2, false))
+        assert_eq!(10_605, monkeys.run(20, 2, false))
     }
 }

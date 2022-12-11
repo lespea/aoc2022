@@ -1,6 +1,6 @@
 use crate::monkey::Op;
 use crate::monkey::{Item, Monkey};
-use crate::monkey::{ItemNum, Monkies};
+use crate::monkey::{ItemNum, Monkeys};
 
 use nom::branch::alt;
 use nom::character::complete::{
@@ -17,10 +17,10 @@ use nom::{
     IResult,
 };
 
-pub fn parse_monkies(i: &str) -> IResult<&str, Monkies> {
+pub fn parse_monkeys(i: &str) -> IResult<&str, Monkeys> {
     map(
         terminated(separated_list1(multispace1, parse_monkey), eof),
-        Monkies,
+        Monkeys,
     )(i)
 }
 

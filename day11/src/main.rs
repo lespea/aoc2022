@@ -3,7 +3,7 @@ extern crate core;
 mod monkey;
 mod parser;
 
-use crate::monkey::Monkies;
+use crate::monkey::Monkeys;
 use color_eyre::eyre::Result;
 
 const PART_1: bool = false;
@@ -13,51 +13,51 @@ static INPUT: &str = include_str!("input");
 fn main() -> Result<()> {
     color_eyre::install()?;
 
-    let (_, monkies) = parser::parse_monkies(INPUT)?;
+    let (_, monkeys) = parser::parse_monkeys(INPUT)?;
 
     if PART_1 {
-        part1(monkies)
+        part1(monkeys)
     } else {
-        part2(monkies)
+        part2(monkeys)
     }
 }
 
-fn part1(mut monkies: Monkies) -> Result<()> {
-    println!("{}", monkies.run(20, 2, false));
+fn part1(mut monkeys: Monkeys) -> Result<()> {
+    println!("{}", monkeys.run(20, 2, false));
     Ok(())
 }
 
-fn part2(mut monkies: Monkies) -> Result<()> {
-    println!("{}", monkies.run(10_000, 2, true));
+fn part2(mut monkeys: Monkeys) -> Result<()> {
+    println!("{}", monkeys.run(10_000, 2, true));
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::parser::parse_monkies;
+    use crate::parser::parse_monkeys;
 
     #[test]
     fn example1() {
-        let mut monkies = example_monkies();
-        assert_eq!(4, monkies.0.len());
+        let mut monkeys = example_monkeys();
+        assert_eq!(4, monkeys.0.len());
 
-        assert_eq!(10_605, monkies.run(20, 2, false));
+        assert_eq!(10_605, monkeys.run(20, 2, false));
     }
 
     #[test]
     fn example2() {
-        let mut monkies = example_monkies();
-        assert_eq!(4, monkies.0.len());
+        let mut monkeys = example_monkeys();
+        assert_eq!(4, monkeys.0.len());
 
-        assert_eq!(2_713_310_158, monkies.run(10_000, 2, true));
+        assert_eq!(2_713_310_158, monkeys.run(10_000, 2, true));
     }
 
-    fn example_monkies() -> Monkies {
-        let (rem, monkies) = parse_monkies(example_data()).unwrap();
+    fn example_monkeys() -> Monkeys {
+        let (rem, monkeys) = parse_monkeys(example_data()).unwrap();
         println!("{rem}");
         assert!(rem.is_empty());
-        monkies
+        monkeys
     }
 
     fn example_data() -> &'static str {
