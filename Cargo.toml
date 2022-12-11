@@ -11,6 +11,7 @@ members = [
     "day08",
     "day09",
     "day10",
+    "day11",
 ]
 
 [workspace.package]
@@ -28,8 +29,13 @@ incremental = false
 lto = true
 strip = true
 
+[profile.dev.package.backtrace]
+opt-level = 3
+
 [workspace.dependencies]
 atoi = "2"
+color-eyre = "0"
 id_tree = "1"
 itertools = "0"
 ndarray = "0"
+nom = "7"
