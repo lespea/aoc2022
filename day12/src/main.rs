@@ -6,7 +6,7 @@ use petgraph::visit::EdgeIndexable;
 use petgraph::{Directed, Graph, Undirected};
 use std::io::Read;
 
-const PART_1: bool = true;
+const PART_1: bool = false;
 
 static PART_1_DATA: &str = include_str!("input");
 
@@ -19,24 +19,27 @@ fn main() {
 }
 
 fn part1() {
-    let (g, start, end) = build_graph(PART_1_DATA);
-    // println!("{g:?}");
-    let steps = astar(&g, start, |e| e == end, |_| 1, |_| 0);
-
-    let ans = steps.map(|a| a.0);
-
+    let (g, start, end, _) = build_graph(PART_1_DATA);
+    let ans = find_fastest(&g, start, end);
     println!("{ans:?}");
 }
 
-fn part2() {}
+fn part2() {
+    let (g, _, end, starts) = build_graph(PART_1_DATA);
+    let ans = find_fastest_groups(&g, starts, end);
+    println!("{ans:?}");
+}
 
 #[inline]
 fn want(b1: u8, b2: u8) -> bool {
-    b2 <= b1 || (b1 < b2 && b1 == b2 - 1) || (b1 > b2 && b1 == b2 + 1)
+    b2 <= b1 || b1 + 1 == b2
 }
 
-pub fn build_graph(data: &str) -> (Graph<(usize, usize), u8, Directed>, NodeIndex, NodeIndex) {
+type HillGraph = Graph<(usize, usize), u8, Directed>;
+
+pub fn build_graph(data: &str) -> (HillGraph, NodeIndex, NodeIndex, Vec<NodeIndex>) {
     let (mut start, mut end) = (None, None);
+    let mut starts = Vec::with_capacity(256);
 
     let mut g = Graph::new();
 
@@ -88,6 +91,10 @@ pub fn build_graph(data: &str) -> (Graph<(usize, usize), u8, Directed>, NodeInde
 
                     let cur_info = (cur_node, height);
 
+                    if height == 0 {
+                        starts.push(cur_node);
+                    }
+
                     cur_nodes.push(cur_info);
                     Some(cur_info)
                 });
@@ -95,7 +102,15 @@ pub fn build_graph(data: &str) -> (Graph<(usize, usize), u8, Directed>, NodeInde
             Some(cur_nodes)
         });
 
-    (g, start.unwrap(), end.unwrap())
+    (g, start.unwrap(), end.unwrap(), starts)
+}
+
+pub fn find_fastest(g: &HillGraph, start: NodeIndex, end: NodeIndex) -> Option<usize> {
+    astar(&g, start, |e| e == end, |_| 1, |_| 0).map(|a| a.0)
+}
+
+pub fn find_fastest_groups(g: &HillGraph, start: Vec<NodeIndex>, end: NodeIndex) -> Option<usize> {
+    start.iter().flat_map(|s| find_fastest(&g, *s, end)).min()
 }
 
 #[cfg(test)]
@@ -105,10 +120,9 @@ mod tests {
 
     #[test]
     fn example() {
-        let (g, start, end) = build_graph(example_data());
-        // println!("{g:?}");
-        let steps = astar(&g, start, |e| e == end, |_| 1, |_| 0);
-        assert_eq!(31, steps.unwrap().0);
+        let (g, start, end, starts) = build_graph(example_data());
+        assert_eq!(31, find_fastest(&g, start, end).unwrap());
+        assert_eq!(29, find_fastest_groups(&g, starts, end).unwrap());
     }
 
     fn example_data() -> &'static str {
