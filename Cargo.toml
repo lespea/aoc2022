@@ -12,6 +12,7 @@ members = [
     "day09",
     "day10",
     "day11",
+    "day12",
 ]
 
 [workspace.package]
@@ -40,3 +41,4 @@ itertools = "0"
 ndarray = "0"
 num = "0"
 nom = "7"
+petgraph = "0"
