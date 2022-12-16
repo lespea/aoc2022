@@ -1,5 +1,6 @@
 use color_eyre::eyre::{ErrReport, Result};
 use std::cmp::Ordering;
+use std::ptr;
 
 use nom::branch::alt;
 use nom::character::complete;
@@ -56,16 +57,13 @@ impl PacketPairs {
     fn find_dividers(&self) -> usize {
         let mut packets = Vec::with_capacity(self.packets.len() * 2 + 2);
 
-        // Create the divider packets
+        // Create the divider packets and insert them
         let p1 = Packet::List(vec![Packet::List(vec![Packet::Num(2)])]);
         let p2 = Packet::List(vec![Packet::List(vec![Packet::Num(6)])]);
+        packets.push(&p1);
+        packets.push(&p2);
 
-        // Make pointers to the dividers and insert them into the packet vec
-        let p1a = &p1;
-        let p2a = &p2;
-        packets.push(p1a);
-        packets.push(p2a);
-
+        // Insert the rest of the packets
         for pp in self.packets.iter() {
             packets.push(&pp.p1);
             packets.push(&pp.p2);
@@ -73,16 +71,11 @@ impl PacketPairs {
 
         packets.sort_unstable();
 
-        // turn the pointers into consts pointers for super fast comparisons
-        let p1a = p1a as *const _;
-        let p2a = p2a as *const _;
-
         packets
             .into_iter()
             .enumerate()
             .flat_map(|(idx, packet)| {
-                let addr = packet as *const _;
-                if addr == p1a || addr == p2a {
+                if ptr::eq(packet, &p1) || ptr::eq(packet, &p2) {
                     Some(idx + 1)
                 } else {
                     None
