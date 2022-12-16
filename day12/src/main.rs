@@ -110,7 +110,7 @@ pub fn find_fastest(g: &HillGraph, start: NodeIndex, end: NodeIndex) -> Option<u
 }
 
 pub fn find_fastest_groups(g: &HillGraph, start: Vec<NodeIndex>, end: NodeIndex) -> Option<usize> {
-    start.iter().flat_map(|s| find_fastest(&g, *s, end)).min()
+    start.iter().flat_map(|s| find_fastest(g, *s, end)).min()
 }
 
 #[cfg(test)]
